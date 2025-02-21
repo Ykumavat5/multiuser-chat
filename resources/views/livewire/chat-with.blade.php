@@ -48,6 +48,50 @@
                                 <!-- Check if media is an image -->
                                 @foreach (['jpg', 'jpeg', 'png', 'gif'] as $ext)
                                     @if (str_ends_with($media, $ext))
+                                        {{-- <div class="dots-menu"
+                                            style="display: flex; justify-content: flex-end; align-items: center; width: 100%;">
+                                            {{ $message->id }}
+                                            <i class="fas fa-ellipsis-h" style="cursor: pointer;"
+                                                onclick="toggleDropdown()"></i>
+
+                                            <!-- Dropdown Menu -->
+                                            <div id="dropdown" class="dropdown-menu"
+                                                style="display: none; position: absolute; right: 0; background-color: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
+
+                                                <a href="{{ Storage::url($media) }}" target="_blank"
+                                                    style="padding: 10px; display: block; color: #333; text-decoration: none;">View</a>
+                                                <a href="{{ Storage::url($media) }}" download
+                                                    style="padding: 10px; display: block; color: #333; text-decoration: none;">Download</a>
+                                                <a href="javascript:void(0);" onclick="deleteItem()"
+                                                    style="padding: 10px; display: block; color: #333; text-decoration: none;">Delete</a>
+                                                <a href="javascript:void(0);"
+                                                    onclick="deleteItem({{ $message->id }}_{{ $loop->index }})"
+                                                    style="padding: 10px; display: block; color: #333; text-decoration: none;"
+                                                    id="">Delete</a>
+                                                    <a href="javascript:void(0);" onclick="deleteItem({{ $message->id }}_{{ $loop->index }})" style="padding: 10px; display: block; color: #333; text-decoration: none;">Delete</a>
+                                            </div>
+                                        </div> --}}
+                                        @foreach (explode(',', $message->media) as $index => $media)
+                                            <div class="dots-menu" style="display: flex; justify-content: flex-end; align-items: center; width: 100%;">
+                                                <!-- Add unique ID dynamically to each 3 dots icon and dropdown -->
+                                                <i class="fas fa-ellipsis-h" style="cursor: pointer;"
+                                                    onclick="toggleDropdown(event, {{ $message->id }}, {{ $index }})"></i>
+
+                                                <!-- Dropdown Menu, with a unique ID based on message ID and media index -->
+                                                <div id="dropdown-{{ $message->id }}-{{ $index }}"
+                                                    class="dropdown-menu"
+                                                    style="display: none; position: absolute; right: 0; background-color: #fff; border: 1px solid #ccc; border-radius: 5px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);justify-content: flex-end;">
+                                                    <a href="{{ Storage::url($media) }}" target="_blank"
+                                                        style="padding: 10px; display: block; color: #333; text-decoration: none;">View</a>
+                                                    <a href="{{ Storage::url($media) }}" download
+                                                        style="padding: 10px; display: block; color: #333; text-decoration: none;">Download</a>
+                                                    <a href="javascript:void(0);"
+                                                        onclick="deleteItem({{ $message->id }}, {{ $index }})"
+                                                        style="padding: 10px; display: block; color: #333; text-decoration: none;">Delete</a>
+                                                </div>
+                                            </div>
+                                        @endforeach
+
                                         <img src="{{ Storage::url($media) }}" alt="media"
                                             style="max-width: 280px; max-height: 300px;">
                                     @endif
@@ -58,12 +102,13 @@
                                     <!-- Display PDF preview (first page) -->
                                     {{-- <canvas class="pdfViewer" style="max-width: 300px; max-height: 300px;"></canvas> --}}
                                     <canvas class="pdfViewer" data-pdf-url="{{ Storage::url($media) }}"
-                                        style="max-width: 300px; max-height: 300px;"></canvas>
+                                        style="max-width: 300px; max-height: 300px;"
+                                        onmouseover="initializePDFRender(this)"></canvas>
                                     <br>
                                     <!-- Provide a download link for the PDF -->
                                     <a href="{{ Storage::url($media) }}"><button>Download</button></a>
                                 @endif
-
+                                            
                                 <!-- Check if media is a document -->
                                 @if (str_ends_with($media, 'docx') || str_ends_with($media, 'xlsx'))
                                     <a href="{{ Storage::url($media) }}" target="_blank">Download File</a>
@@ -163,7 +208,7 @@
                 </div> --}}
                 <!-- smile -->
 
-                <svg class="file-and-smile-icons" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
+                {{-- <svg class="file-and-smile-icons" version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg"
                     xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 330 330"
                     style="enable-background: new 0 0 330 330" xml:space="preserve">
                     <g id="XMLID_26_">
@@ -194,7 +239,7 @@
                     <g></g>
                     <g></g>
                     <g></g>
-                </svg>
+                </svg> --}}
                 <svg wire:click="send_message" class="submit-button" type="button" class=""
                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" style="margin-top: 15px;">
                     <path
@@ -205,22 +250,6 @@
             <!-- </div> -->
         </div>
     </div>
-    {{-- <script>
-        textContentScroll = document.getElementsByClassName('chat-box-content')[0];
-        textContentScroll.scrollTop = textContentScroll.scrollHeight;
-
-
-        let textContent = document.getElementsByClassName('conversation-group')[0];
-        let textbox = document.querySelector("#text-box");
-        textbox.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                textContentScroll = document.getElementsByClassName('chat-box-content')[0];
-                textContentScroll.scrollTop = textContentScroll.scrollHeight + 40;
-                return false;
-            }
-        });
-    </script> --}}
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
 
     <script>
         // Function to render PDF on the canvas with zoom effect for top 25% of the page
@@ -283,6 +312,65 @@
         document.addEventListener('DOMContentLoaded', () => {
             initializePDFRender(); // Trigger PDF rendering for all canvases
         });
+    </script>
+    <script>
+        // Toggle dropdown visibility
+        // function toggleDropdown() {
+        //     const dropdown = document.getElementById('dropdown');
+        //     dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+        // }
+
+        function toggleDropdown(event, messageId, index) {
+            // Get the parent of the clicked element (the div that contains the menu)
+            var parent = event.target.closest('.dots-menu');
+
+            // Construct the unique dropdown ID using messageId and index
+            var dropdownId = 'dropdown-' + messageId + '-' + index;
+
+            // Get the dropdown element by the dynamically generated ID
+            var dropdown = document.getElementById(dropdownId);
+
+            // Hide all dropdowns first
+            var allDropdowns = document.querySelectorAll('.dropdown-menu');
+            allDropdowns.forEach(function(d) {
+                if (d !== dropdown) {
+                    d.style.display = 'none'; // Hide others
+                }
+            });
+
+            // Toggle the visibility of the current dropdown
+            dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Modify deleteItem function to send AJAX request
+        function deleteItem(id) {
+            if (confirm('Are you sure you want to delete this item?')) {
+                // Get the media id (you may need to pass it as a data attribute or retrieve it dynamically)
+                let messageId = id;
+                console.log(messageId);
+
+                // Send AJAX request to delete media
+                fetch(`/message/media/${messageId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.message) {
+                            alert(data.message);
+                            // Optionally remove the media from the DOM after deletion
+                            // For example, remove the image, video, or file preview
+                            document.getElementById('media-preview').remove();
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error deleting media:', error);
+                    });
+            }
+        }
     </script>
 
 

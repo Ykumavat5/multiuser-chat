@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\chat;
 use Imagick;
+use App\Models\Message;
+use Illuminate\Support\Facades\Storage;
 
 class FrindsController extends Controller
 {
@@ -46,5 +48,32 @@ class FrindsController extends Controller
     {
         $chat = Chat::findOrFail($id);
         return view('show', ['path' => $chat->media]);
+    }
+
+    public function deleteMedia($id)
+    {
+        // dd($id);
+        // Find the message by ID
+        $message = Chat::find($id);
+
+        if ($message) {
+            // Check if the message has media attached
+            if ($message->media) {
+                // Delete the media file from storage
+                $mediaFiles = explode(',', $message->media);
+                foreach ($mediaFiles as $media) {
+                    if (Storage::exists($media)) {
+                        Storage::delete($media);
+                    }
+                }
+                $message->delete(); // Save the changes
+
+                return response()->json(['message' => 'Media deleted successfully.'], 200);
+            } else {
+                return response()->json(['message' => 'No media found for this message.'], 404);
+            }
+        } else {
+            return response()->json(['message' => 'Message not found.'], 404);
+        }
     }
 }

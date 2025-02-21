@@ -26,7 +26,7 @@ Route::middleware(['auth'])->group(function () {
     // routes/web.php
     Route::get('pdf-preview/{file}', [FrindsController::class, 'generatePdfPreview'])->name('pdf.preview');
     Route::get('media/{id}', [FrindsController::class, 'show'])->name('pdf.show');
-
+    Route::delete('/message/media/{id}', [FrindsController::class, 'deleteMedia'])->name('deleteMedia');
 });
 
 
